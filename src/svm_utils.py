@@ -19,7 +19,10 @@ def huan_luyen_svm(X_train, y_train, C=1.0, kernel='linear'):
 
     Gợi ý: from sklearn.svm import SVC
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm huan_luyen_svm()")
+    from sklearn.svm import SVC
+    model = SVC(C=C, kernel=kernel, random_state=42)
+    model.fit(X_train, y_train)
+    return model
 
 
 def thong_tin_support_vectors(model):
@@ -36,7 +39,11 @@ def thong_tin_support_vectors(model):
 
     Gợi ý: model.support_vectors_  và  model.n_support_
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm thong_tin_support_vectors()")
+    return {
+        "so_luong": int(model.support_vectors_.shape[0]),
+        "moi_lop": list(model.n_support_),
+        "toa_do": model.support_vectors_,
+    }
 
 
 def ve_bien_quyet_dinh(model, X, y, ten_lop=None, tieu_de='SVM — Đường biên quyết định'):
@@ -59,7 +66,45 @@ def ve_bien_quyet_dinh(model, X, y, ten_lop=None, tieu_de='SVM — Đường bi�
         ten_lop  : tên các lớp (tùy chọn)
         tieu_de  : tiêu đề biểu đồ
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm ve_bien_quyet_dinh()")
+    x0_min, x0_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
+    x1_min, x1_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
+    xx, yy = np.meshgrid(
+        np.linspace(x0_min, x0_max, 300),
+        np.linspace(x1_min, x1_max, 300),
+    )
+    Z = model.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+
+    plt.figure(figsize=(8, 6))
+    plt.contourf(xx, yy, Z, alpha=0.25, cmap="RdBu")
+
+    colors  = ["#e74c3c", "#3498db", "#2ecc71", "#f39c12"]
+    markers = ["o", "s", "^", "D"]
+    for k, cls in enumerate(np.unique(y)):
+        idx   = y == cls
+        label = ten_lop[k] if ten_lop else str(cls)
+        plt.scatter(
+            X[idx, 0], X[idx, 1],
+            c=colors[k % len(colors)],
+            marker=markers[k % len(markers)],
+            label=label,
+            edgecolors="k", linewidths=0.3, s=40, alpha=0.85,
+        )
+
+    # Support vectors — vẽ viền đậm
+    sv = model.support_vectors_
+    plt.scatter(
+        sv[:, 0], sv[:, 1],
+        s=160, linewidths=1.8,
+        facecolors="none", edgecolors="black",
+        zorder=5, label="Support Vectors",
+    )
+
+    plt.xlabel("Feature 1")
+    plt.ylabel("Feature 2")
+    plt.title(tieu_de)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
 
 
 def danh_gia_svm(model, X_test, y_test, ten_lop=None):
@@ -76,4 +121,23 @@ def danh_gia_svm(model, X_test, y_test, ten_lop=None):
 
     Gợi ý: sklearn.metrics — accuracy_score, classification_report, confusion_matrix
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm danh_gia_svm()")
+    from sklearn.metrics import (accuracy_score, classification_report,
+                                 confusion_matrix, ConfusionMatrixDisplay)
+
+    y_pred = model.predict(X_test)
+    acc    = accuracy_score(y_test, y_pred)
+    report = classification_report(y_test, y_pred, target_names=ten_lop)
+    cm     = confusion_matrix(y_test, y_pred)
+
+    print(f"Độ chính xác: {acc:.4f}\n")
+    print(report)
+
+    fig, ax = plt.subplots(figsize=(5, 4))
+    ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=ten_lop).plot(
+        ax=ax, colorbar=False, cmap="Blues"
+    )
+    ax.set_title("Ma trận nhầm lẫn")
+    plt.tight_layout()
+    plt.show()
+
+    return {"accuracy": acc, "report": report, "confusion_matrix": cm}

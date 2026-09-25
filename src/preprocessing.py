@@ -17,7 +17,7 @@ def chia_train_test(X, y, ty_le_test=0.2, random_state=42):
 
     Gợi ý: sklearn.model_selection.train_test_split
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm chia_train_test()")
+    return train_test_split(X, y, test_size=ty_le_test, random_state=random_state)
 
 
 def chuan_hoa(X_train, X_test):
@@ -37,4 +37,7 @@ def chuan_hoa(X_train, X_test):
 
     Gợi ý: sklearn.preprocessing.StandardScaler
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm chuan_hoa()")
+    scaler = StandardScaler()
+    X_train_sc = scaler.fit_transform(X_train)
+    X_test_sc = scaler.transform(X_test)
+    return scaler, X_train_sc, X_test_sc

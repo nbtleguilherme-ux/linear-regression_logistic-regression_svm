@@ -33,7 +33,7 @@ def sigmoid(z):
 
     Gợi ý: np.exp(−z)
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm sigmoid()")
+    return 1.0 / (1.0 + np.exp(-z))
 
 
 def xac_suat_binary(X, w):
@@ -46,7 +46,7 @@ def xac_suat_binary(X, w):
     Trả về:
         probs : xác suất thuộc lớp 1, shape (n,)
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm xac_suat_binary()")
+    return sigmoid(X @ w)
 
 
 def du_doan_binary(X, w, nguong=0.5):
@@ -62,7 +62,7 @@ def du_doan_binary(X, w, nguong=0.5):
     Trả về:
         y_pred : nhãn dự đoán, shape (n,), kiểu int
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm du_doan_binary()")
+    return (xac_suat_binary(X, w) >= nguong).astype(int)
 
 
 def log_loss(X, y, w):
@@ -81,7 +81,8 @@ def log_loss(X, y, w):
     Trả về:
         loss : float
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm log_loss()")
+    p = np.clip(xac_suat_binary(X, w), 1e-15, 1.0 - 1e-15)
+    return -np.mean(y * np.log(p) + (1.0 - y) * np.log(1.0 - p))
 
 
 def gradient_logistic(X, y, w):
@@ -98,7 +99,9 @@ def gradient_logistic(X, y, w):
     Trả về:
         grad : vector gradient, shape (p,)
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm gradient_logistic()")
+    n = X.shape[0]
+    p = xac_suat_binary(X, w)
+    return (1.0 / n) * X.T @ (p - y)
 
 
 def huan_luyen_logistic(X, y, alpha=0.1, n_iter=1000):
@@ -125,8 +128,10 @@ def huan_luyen_logistic(X, y, alpha=0.1, n_iter=1000):
     w = np.zeros(p)
     ls_loss = []
 
-    # TODO: Hoàn thiện vòng lặp huấn luyện
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm huan_luyen_logistic()")
+    for _ in range(n_iter):
+        grad = gradient_logistic(X, y, w)
+        w = w - alpha * grad
+        ls_loss.append(log_loss(X, y, w))
 
     return w, ls_loss
 
@@ -151,7 +156,15 @@ def huan_luyen_da_lop(X_train, y_train, alpha=0.1, max_iter=1000):
         from sklearn.linear_model import LogisticRegression
         Dùng multi_class='multinomial', solver='lbfgs', max_iter=max_iter
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm huan_luyen_da_lop()")
+    from sklearn.linear_model import LogisticRegression
+    model = LogisticRegression(
+        multi_class='multinomial',
+        solver='lbfgs',
+        max_iter=max_iter,
+        random_state=42,
+    )
+    model.fit(X_train, y_train)
+    return model
 
 
 # ---------------------------------------------------------------------------
@@ -173,4 +186,23 @@ def danh_gia(y_true, y_pred, ten_lop=None):
 
     Gợi ý: sklearn.metrics — accuracy_score, classification_report, confusion_matrix
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm danh_gia()")
+    from sklearn.metrics import (accuracy_score, classification_report,
+                                 confusion_matrix, ConfusionMatrixDisplay)
+    import matplotlib.pyplot as plt
+
+    acc = accuracy_score(y_true, y_pred)
+    report = classification_report(y_true, y_pred, target_names=ten_lop)
+    cm = confusion_matrix(y_true, y_pred)
+
+    print(f"Độ chính xác: {acc:.4f}\n")
+    print(report)
+
+    fig, ax = plt.subplots(figsize=(5, 4))
+    ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=ten_lop).plot(
+        ax=ax, colorbar=False, cmap='Blues'
+    )
+    ax.set_title("Ma trận nhầm lẫn")
+    plt.tight_layout()
+    plt.show()
+
+    return {"accuracy": acc, "report": report, "confusion_matrix": cm}

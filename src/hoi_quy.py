@@ -36,7 +36,7 @@ def du_doan(X, w):
     Trả về:
         y_hat : vector dự đoán, shape (n,)
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm du_doan()")
+    return X @ w
 
 
 def tinh_mse(y_true, y_pred):
@@ -51,7 +51,7 @@ def tinh_mse(y_true, y_pred):
     Trả về:
         mse : float
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm tinh_mse()")
+    return np.mean((y_true - y_pred) ** 2)
 
 
 def tinh_gradient(X, y, w):
@@ -67,7 +67,9 @@ def tinh_gradient(X, y, w):
     Trả về:
         grad : vector gradient, shape (p,)
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm tinh_gradient()")
+    n = X.shape[0]
+    residuals = X @ w - y
+    return (2 / n) * X.T @ residuals
 
 
 def gradient_descent(X, y, alpha=0.01, n_iter=1000):
@@ -94,8 +96,10 @@ def gradient_descent(X, y, alpha=0.01, n_iter=1000):
     w = np.zeros(p)
     ls_loss = []
 
-    # TODO: Hoàn thiện vòng lặp Gradient Descent
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm gradient_descent()")
+    for _ in range(n_iter):
+        grad = tinh_gradient(X, y, w)
+        w = w - alpha * grad
+        ls_loss.append(tinh_mse(y, du_doan(X, w)))
 
     return w, ls_loss
 
@@ -130,8 +134,14 @@ def sgd(X, y, alpha=0.01, n_epochs=50, random_state=42):
     ls_loss = []
     rng = np.random.default_rng(random_state)
 
-    # TODO: Hoàn thiện vòng lặp SGD
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm sgd()")
+    for _ in range(n_epochs):
+        indices = rng.permutation(n)
+        for i in indices:
+            Xi = X[i:i+1, :]
+            yi = y[i:i+1]
+            grad = tinh_gradient(Xi, yi, w)
+            w = w - alpha * grad
+        ls_loss.append(tinh_mse(y, du_doan(X, w)))
 
     return w, ls_loss
 
@@ -150,4 +160,4 @@ def phuong_trinh_chuan(X, y):
     Trả về:
         w : vector trọng số giải tích, shape (p,)
     """
-    raise NotImplementedError("TODO: Hãy hoàn thiện hàm phuong_trinh_chuan()")
+    return np.linalg.pinv(X.T @ X) @ X.T @ y
