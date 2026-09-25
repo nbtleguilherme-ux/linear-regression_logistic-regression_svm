@@ -154,11 +154,11 @@ def huan_luyen_da_lop(X_train, y_train, alpha=0.1, max_iter=1000):
 
     Gợi ý:
         from sklearn.linear_model import LogisticRegression
-        Dùng multi_class='multinomial', solver='lbfgs', max_iter=max_iter
+        Dùng solver='lbfgs', max_iter=max_iter
+        (sklearn >= 1.5 đã bỏ tham số multi_class; lbfgs tự dùng softmax khi có nhiều lớp)
     """
     from sklearn.linear_model import LogisticRegression
     model = LogisticRegression(
-        multi_class='multinomial',
         solver='lbfgs',
         max_iter=max_iter,
         random_state=42,
